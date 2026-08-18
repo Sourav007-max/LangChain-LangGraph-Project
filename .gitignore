@@ -1,0 +1,64 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  .gitignore — AI Hiring Co-Pilot
+#  Prevents sensitive and unnecessary files from being committed to Git
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Environment & Secrets (NEVER commit these) ───────────────────────────────
+.env
+.env.local
+.env.production
+*.pem
+*.key
+secrets/
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+*.xml
+
+# ── IDEs & Editors ────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Uploads & Data ───────────────────────────────────────────────────────────
+uploads/
+*.pdf
+*.docx
+data/raw/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Node (for React frontend) ────────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.sqlite3
+*.db
+
+# ── ChromaDB local storage ────────────────────────────────────────────────────
+chroma_db/
