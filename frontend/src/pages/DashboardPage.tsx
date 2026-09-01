@@ -6,7 +6,7 @@ import {
 } from 'recharts'
 import {
   Briefcase, Users, FileText, TrendingUp,
-  ArrowRight, Clock, CheckCircle2, AlertCircle,
+  ArrowRight, AlertCircle,
 } from 'lucide-react'
 import { analyticsService, jobService } from '@/services/hiring'
 import useStore from '@/store/useStore'
@@ -35,13 +35,13 @@ export default function DashboardPage() {
   const user             = useStore((s) => s.user)
   const pendingShortlist = useStore((s) => s.pendingShortlist)
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => analyticsService.dashboard().then((r) => r.data),
     refetchInterval: 30_000,
   })
 
-  const { data: jobsData, isLoading: jobsLoading } = useQuery({
+  const { data: jobsData, isLoading: jobsLoading, isError: jobsError } = useQuery({
     queryKey: ['jobs'],
     queryFn: () => jobService.list().then((r) => r.data),
   })
@@ -92,7 +92,11 @@ export default function DashboardPage() {
       )}
 
       {/* KPI grid */}
-      {statsLoading ? (
+      {statsError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Dashboard metrics are unavailable. Refresh to try again.
+        </div>
+      ) : statsLoading ? (
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-24 rounded-xl" />)}
         </div>
@@ -101,7 +105,7 @@ export default function DashboardPage() {
           <StatCard label="Active Jobs"       value={stats?.total_jobs        ?? 0} icon={<Briefcase size={18} />}   color="blue"   />
           <StatCard label="Total Candidates"  value={stats?.total_candidates  ?? 0} icon={<Users size={18} />}        color="violet" />
           <StatCard label="Applications"      value={stats?.total_applications ?? 0} icon={<FileText size={18} />}    color="green"  />
-          <StatCard label="AI Time Saved"     value="14 hrs"                         icon={<Clock size={18} />}        color="amber"  />
+          <StatCard label="Needs Review"      value={pendingShortlist.length}       icon={<AlertCircle size={18} />}  color="amber"  />
         </div>
       )}
 
@@ -136,7 +140,9 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          {jobsLoading ? (
+          {jobsError ? (
+            <p className="text-sm text-red-600">Open positions could not be loaded. Refresh to try again.</p>
+          ) : jobsLoading ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => <div key={i} className="skeleton h-14 rounded-lg" />)}
             </div>
@@ -145,7 +151,7 @@ export default function DashboardPage() {
               {jobsData.jobs.slice(0, 5).map((job) => (
                 <div
                   key={job.id}
-                  onClick={() => navigate('/workflow')}
+                  onClick={() => navigate(`/workflow?job=${job.id}`)}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer group transition-colors border border-transparent hover:border-gray-100"
                 >
                   <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
@@ -170,28 +176,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent activity */}
-      <div className="card p-6">
-        <h2 className="section-title mb-4">Recent Activity</h2>
-        <div className="space-y-3">
-          {[
-            { icon: <CheckCircle2 size={14} className="text-emerald-600" />, bg: 'bg-emerald-50', text: 'Workflow completed for "Senior Python Developer"', time: '2 hours ago' },
-            { icon: <Users size={14} className="text-blue-600" />, bg: 'bg-blue-50', text: '3 candidates shortlisted for review', time: '2 hours ago' },
-            { icon: <TrendingUp size={14} className="text-violet-600" />, bg: 'bg-violet-50', text: 'JD analysis completed â€” 8 required skills extracted', time: '3 hours ago' },
-            { icon: <FileText size={14} className="text-amber-600" />, bg: 'bg-amber-50', text: '5 resumes uploaded for "Python Developer" role', time: '3 hours ago' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className={`h-6 w-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5 ${item.bg}`}>
-                {item.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-700">{item.text}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{item.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
@@ -202,14 +186,3 @@ function getGreeting() {
 }
 
 // â”€â”€ Reusable KPI card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function KpiCard({ label, value, icon }: { label: string; value: number | string; icon: string }) {
-  return (
-    <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-      <div className="text-3xl">{icon}</div>
-      <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
-      </div>
-    </div>
-  )
-}

@@ -43,6 +43,8 @@ APP_ENV:       str = os.getenv("APP_ENV", "development")
 DEBUG:         bool = os.getenv("DEBUG", "true").lower() == "true"
 UPLOAD_DIR:    str = os.getenv("UPLOAD_DIR", "./uploads/resumes")
 MAX_FILE_SIZE_MB: int = int(os.getenv("MAX_FILE_SIZE_MB", "10"))
+RESUME_MAX_CHARS: int = int(os.getenv("RESUME_MAX_CHARS", "3000"))
+INTERVIEW_QUESTIONS_COUNT: int = int(os.getenv("INTERVIEW_QUESTIONS_COUNT", "5"))
 CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
 SMTP_ENABLED: bool = os.getenv("SMTP_ENABLED", "false").lower() == "true"
 

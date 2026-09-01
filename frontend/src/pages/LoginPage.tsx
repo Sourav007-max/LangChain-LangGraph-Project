@@ -16,10 +16,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 const FEATURES = [
-  { Icon: Zap,        text: 'AI scores 100 resumes in under 2 minutes' },
-  { Icon: Users,      text: 'Multi-agent pipeline with human approval' },
-  { Icon: BarChart3,  text: 'Real-time hiring analytics dashboard' },
-  { Icon: CheckCircle2, text: 'Auto-schedules interviews via email' },
+  { Icon: Zap,        text: 'Screen resumes against each role' },
+  { Icon: Users,      text: 'Review every shortlist before decisions' },
+  { Icon: BarChart3,  text: 'Track your hiring pipeline' },
+  { Icon: CheckCircle2, text: 'Generate interview questions after approval' },
 ]
 
 export default function LoginPage() {

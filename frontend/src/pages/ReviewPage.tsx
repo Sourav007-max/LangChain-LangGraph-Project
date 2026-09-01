@@ -1,5 +1,5 @@
-﻿import React, { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+﻿import React, { useEffect, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import {
@@ -124,10 +124,28 @@ export default function ReviewPage() {
   const clearWorkflow     = useStore((s) => s.clearWorkflow)
   const setWorkflowOutput = useStore((s) => s.setWorkflowOutput)
 
+  const { data: workflowState, isLoading: workflowLoading, isError: workflowError } = useQuery({
+    queryKey: ['workflow-state', activeThreadId],
+    queryFn: () => workflowService.getState(activeThreadId!).then((res) => res.data),
+    enabled: !!activeThreadId && shortlisted.length === 0,
+  })
+
+  const currentShortlist = shortlisted.length ? shortlisted : (workflowState?.shortlisted ?? [])
+
+  useEffect(() => {
+    if (workflowState?.shortlisted?.length && !shortlisted.length && activeThreadId) {
+      useStore.getState().setWorkflowResult(activeThreadId, workflowState.shortlisted)
+    }
+  }, [activeThreadId, shortlisted.length, workflowState?.shortlisted])
+
   const [approvedSet, setApprovedSet] = useState<Set<string>>(
-    () => new Set(shortlisted.filter((c) => c.score >= 75).map((c) => c.candidate_name))
+    () => new Set(currentShortlist.filter((c) => c.score >= 75).map((c) => c.candidate_name))
   )
   const [feedback, setFeedback] = useState('')
+
+  useEffect(() => {
+    setApprovedSet(new Set(currentShortlist.filter((c) => c.score >= 75).map((c) => c.candidate_name)))
+  }, [workflowState?.shortlisted, shortlisted.length])
 
   const toggle = (name: string) => setApprovedSet((prev) => {
     const next = new Set(prev); next.has(name) ? next.delete(name) : next.add(name); return next
@@ -136,7 +154,7 @@ export default function ReviewPage() {
   const approveMutation = useMutation({
     mutationFn: (decision: 'approve' | 'reject_all') => {
       const approved = decision === 'reject_all'
-        ? [] : shortlisted.filter((c) => approvedSet.has(c.candidate_name))
+        ? [] : currentShortlist.filter((c) => approvedSet.has(c.candidate_name))
       return workflowService.approve(activeThreadId!, approved, decision, feedback)
     },
     onSuccess: (res, decision) => {
@@ -153,7 +171,21 @@ export default function ReviewPage() {
     onError: (err: any) => toast.error(err.response?.data?.detail ?? 'Action failed'),
   })
 
-  if (!shortlisted.length) {
+  if (workflowLoading && activeThreadId) {
+    return <div className="flex justify-center py-16"><Spinner /></div>
+  }
+
+  if (workflowError) {
+    return (
+      <EmptyState
+        icon={<CheckCircle2 size={24} />}
+        title="Review could not be loaded"
+        body="Refresh the page and try again."
+      />
+    )
+  }
+
+  if (!currentShortlist.length) {
     return (
       <EmptyState
         icon={<CheckCircle2 size={24} />}
@@ -168,13 +200,13 @@ export default function ReviewPage() {
     <div className="max-w-3xl mx-auto animate-fade-up space-y-5">
       <PageHeader
         title="Review Shortlist"
-        subtitle={`AI identified ${shortlisted.length} candidate${shortlisted.length > 1 ? 's' : ''}. Select who to advance to interviews.`}
+        subtitle={`AI identified ${currentShortlist.length} candidate${currentShortlist.length > 1 ? 's' : ''}. Select who to advance to interviews.`}
       />
 
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="card p-4 text-center">
-          <p className="text-2xl font-bold text-gray-900">{shortlisted.length}</p>
+          <p className="text-2xl font-bold text-gray-900">{currentShortlist.length}</p>
           <p className="text-xs text-gray-500 mt-0.5">Shortlisted</p>
         </div>
         <div className="card p-4 text-center">
@@ -183,7 +215,7 @@ export default function ReviewPage() {
         </div>
         <div className="card p-4 text-center">
           <p className="text-2xl font-bold text-gray-900">
-            {shortlisted.length ? Math.round(shortlisted.reduce((s, c) => s + c.score, 0) / shortlisted.length) : 0}
+            {currentShortlist.length ? Math.round(currentShortlist.reduce((s, c) => s + c.score, 0) / currentShortlist.length) : 0}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">Avg Score</p>
         </div>
@@ -191,7 +223,7 @@ export default function ReviewPage() {
 
       {/* Candidate cards */}
       <div className="space-y-3">
-        {shortlisted.map((c) => (
+        {currentShortlist.map((c) => (
           <CandidateCard
             key={c.candidate_name}
             candidate={c}

@@ -7,40 +7,13 @@ Output : state["candidate_scores"]  — sorted list, highest score first
 
 import json
 import time
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from config.settings import get_llm
 from config.monitoring import log_agent
 from agents.state import HiringState
+from agents.prompts import CANDIDATE_SCORING_PROMPT
 
-_PROMPT = ChatPromptTemplate.from_template("""
-You are a senior technical recruiter scoring a candidate against job requirements.
-Return ONLY valid JSON — no markdown, no extra text.
-
-Job Requirements:
-{requirements}
-
-Candidate Profile:
-{candidate}
-
-Scoring rubric:
-  90-100: Perfect match — all requirements met, exceeds in key areas
-  75-89 : Strong match — most requirements met
-  60-74 : Decent match — some gaps, but trainable
-  40-59 : Weak match — significant gaps
-  0-39  : Poor match — fundamental requirements missing
-
-JSON schema to return:
-{{
-  "score":                  <integer 0-100>,
-  "recommendation":         "STRONGLY_RECOMMEND|RECOMMEND|MAYBE|REJECT",
-  "reasoning":              "<3 concise sentences>",
-  "strengths":              ["strength1", "strength2"],
-  "gaps":                   ["gap1"],
-  "skill_match_percentage": <integer 0-100>,
-  "experience_match":       "exceeds|meets|below"
-}}
-""")
+_PROMPT = CANDIDATE_SCORING_PROMPT
 
 
 @log_agent("candidate_matcher", "score_candidates")

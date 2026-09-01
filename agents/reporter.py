@@ -6,37 +6,12 @@ Output : state["final_report"]  — markdown string, ready to display in UI
 """
 
 import json
-from langchain_core.prompts import ChatPromptTemplate
 from config.settings import get_llm
 from config.monitoring import log_agent
 from agents.state import HiringState
+from agents.prompts import REPORT_GENERATION_PROMPT
 
-_PROMPT = ChatPromptTemplate.from_template("""
-You are a senior HR analytics expert. Write a professional hiring pipeline report
-in clean Markdown. Use headers, bullet points, and a table where appropriate.
-
-Data:
-  Job ID              : {job_id}
-  Total resumes       : {total_resumes}
-  Parsed successfully : {parsed_count}
-  Shortlisted         : {shortlisted_count}
-  HR approved         : {approved_count}
-  Interviews scheduled: {interviews_count}
-
-Top candidates:
-{top_candidates}
-
-Skill gaps observed (skills required but rare in applicant pool):
-{skill_gaps}
-
-Structure the report with:
-1. Executive Summary (3 sentences)
-2. Pipeline Funnel (table: stage | count | conversion %)
-3. Top 3 Candidate Profiles
-4. Skill Gap Analysis
-5. Hiring Recommendation
-6. Suggested Next Steps
-""")
+_PROMPT = REPORT_GENERATION_PROMPT
 
 
 def _find_skill_gaps(state: HiringState) -> list[str]:

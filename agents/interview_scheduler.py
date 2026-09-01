@@ -12,19 +12,12 @@ import os
 import json
 import uuid
 from datetime import datetime, timedelta, timezone
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from config.settings import get_llm, SMTP_ENABLED
+from config.settings import get_llm, SMTP_ENABLED, INTERVIEW_QUESTIONS_COUNT
 from agents.state import HiringState
+from agents.prompts import INTERVIEW_QUESTIONS_PROMPT
 
-_Q_PROMPT = ChatPromptTemplate.from_template("""
-Generate exactly 5 targeted technical interview questions for this candidate
-based on the job requirements. Focus on their skill gaps and experience depth.
-Return ONLY a JSON array of 5 question strings.
-
-Candidate: {candidate}
-Job Requirements: {requirements}
-""")
+_Q_PROMPT = INTERVIEW_QUESTIONS_PROMPT
 
 
 def _generate_questions(candidate: dict, requirements: dict) -> list[str]:
@@ -34,6 +27,7 @@ def _generate_questions(candidate: dict, requirements: dict) -> list[str]:
         return chain.invoke({
             "candidate":    json.dumps(candidate),
             "requirements": json.dumps(requirements),
+            "questions_count": INTERVIEW_QUESTIONS_COUNT,
         })
     except Exception:
         return [

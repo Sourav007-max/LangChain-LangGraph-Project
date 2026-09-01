@@ -9,7 +9,7 @@ A production-ready AI recruitment platform that automates candidate screening, r
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  React Frontend (port 5173)  OR  Streamlit (port 8501)          │
+│  React Frontend (port 5173)                                     │
 └──────────────────────────┬──────────────────────────────────────┘
                            │ REST API (JWT Auth)
 ┌──────────────────────────▼──────────────────────────────────────┐
@@ -22,8 +22,7 @@ A production-ready AI recruitment platform that automates candidate screening, r
 │  → [HUMAN REVIEW] → Interview Scheduler → Reporter              │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
-              ┌────────────┴────────────┐
-         SQLite DB              ChromaDB (vectors)
+                    SQLite DB / MySQL
 ```
 
 ---
@@ -37,11 +36,9 @@ A production-ready AI recruitment platform that automates candidate screening, r
 | Orchestration | LangGraph 1.x |
 | Backend | FastAPI + SQLAlchemy |
 | Database | SQLite (dev) → MySQL (prod) |
-| Vector DB | ChromaDB (dev) → Pinecone (prod) |
 | Frontend | React 18 + TypeScript + Tailwind |
-| Prototype UI | Streamlit |
 | Monitoring | LangSmith + agent_logs table |
-| Auth | JWT (PyJWT + bcrypt) |
+| Auth | JWT (python-jose + bcrypt) |
 
 ---
 
@@ -159,19 +156,7 @@ Verify: http://localhost:8000/health → `{"status": "ok"}`
 
 Interactive API docs: http://localhost:8000/docs
 
-### Step 7A: Start the Streamlit dashboard (no Node needed)
-
-```bash
-# Windows
-venv\Scripts\python.exe -m streamlit run frontend\streamlit_app.py --server.port 8501
-
-# Mac / Linux
-python -m streamlit run frontend/streamlit_app.py --server.port 8501
-```
-
-Open: http://localhost:8501
-
-### Step 7B: Start the React frontend
+### Step 7: Start the React frontend
 
 ```bash
 cd frontend
@@ -270,7 +255,6 @@ ai-hiring-copilot/
 │   └── init_db.py          # SQLAlchemy models + init_db()
 │
 ├── frontend/
-│   ├── streamlit_app.py    # Prototype dashboard (Python)
 │   ├── package.json
 │   └── src/
 │       ├── App.tsx          # React router + providers
@@ -284,13 +268,9 @@ ai-hiring-copilot/
 │   ├── test_e2e_workflow.py # Unit tests (no API keys needed)
 │   └── test_integration.py # Live API tests
 │
-├── lessons/                # Course learning materials
-│   ├── phase_01_ai_fundamentals/
-│   ├── phase_02_environment_setup/
-│   ├── phase_03_api_keys/
-│   ├── phase_04_system_design/
-│   ├── phase_07_langgraph/
-│   └── phase_10_rag_integration/
+├── docs/                   # Guides and learning material
+│   ├── guides/
+│   └── learning/
 │
 └── uploads/
     └── resumes/            # Uploaded PDF files

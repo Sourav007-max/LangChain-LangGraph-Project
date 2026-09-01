@@ -182,7 +182,7 @@ export default function JobsPage() {
   const [showModal, setShowModal] = useState(false)
   const [filter, setFilter]       = useState<string>('all')
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['jobs'],
     queryFn: () => jobService.list().then((r) => r.data),
   })
@@ -190,7 +190,7 @@ export default function JobsPage() {
   const jobs = filter === 'all' ? (data?.jobs ?? []) : (data?.jobs ?? []).filter(j => j.status === filter)
 
   const goScreen = (jobId: number) => {
-    navigate('/workflow')
+    navigate(`/workflow?job=${jobId}`)
   }
 
   const FILTERS = ['all', 'active', 'paused', 'filled', 'closed']
@@ -222,7 +222,13 @@ export default function JobsPage() {
         ))}
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <EmptyState
+          icon={<Briefcase size={22} />}
+          title="Jobs could not be loaded"
+          body="Refresh the page and try again."
+        />
+      ) : isLoading ? (
         <div className="grid md:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => <div key={i} className="skeleton h-44 rounded-xl" />)}
         </div>

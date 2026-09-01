@@ -303,11 +303,6 @@ taskkill /PID <PID_NUMBER> /F
 lsof -ti:8000 | xargs kill -9
 ```
 
-### If you see "ModuleNotFoundError: No module named 'jwt'"
-```bash
-pip install PyJWT
-```
-
 ### If you see "email-validator is not installed"
 ```bash
 pip install "pydantic[email]"
@@ -315,29 +310,7 @@ pip install "pydantic[email]"
 
 ---
 
-## Step 9 — Start the Frontend
-
-You need **two options** — pick one:
-
-### Option A: Streamlit (Recommended for beginners — works immediately)
-
-Open a **new terminal**, activate venv, then:
-
-**🪟 Windows:**
-```powershell
-.\venv\Scripts\activate
-venv\Scripts\python.exe -m streamlit run frontend\streamlit_app.py --server.port 8501
-```
-
-**🍎 macOS / 🐧 Linux:**
-```bash
-source venv/bin/activate
-python -m streamlit run frontend/streamlit_app.py --server.port 8501
-```
-
-Open: http://localhost:8501
-
-### Option B: React (Professional UI — requires Node.js)
+## Step 9 — Start the React Frontend
 
 **First, install Node.js 18+ from https://nodejs.org** (LTS version)
 
@@ -411,9 +384,10 @@ python -m database.init_db
 # 6. Start backend (terminal 1)
 venv\Scripts\python.exe -m uvicorn backend.main:app --port 8000
 
-# 7. Start frontend (terminal 2, venv activated)
-venv\Scripts\python.exe -m streamlit run frontend\streamlit_app.py
-# OR: cd frontend && npm install && npm run dev
+# 7. Start frontend (terminal 2)
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
@@ -458,5 +432,4 @@ python -m pytest tests/test_integration.py::test_full_hiring_pipeline -v -m inte
 | Service | URL | Command |
 |---------|-----|---------|
 | API Backend | http://localhost:8000/docs | `uvicorn backend.main:app --port 8000` |
-| Streamlit UI | http://localhost:8501 | `streamlit run frontend/streamlit_app.py` |
 | React UI | http://localhost:5173 | `cd frontend && npm run dev` |

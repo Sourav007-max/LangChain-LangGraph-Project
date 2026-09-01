@@ -1,8 +1,3 @@
-/**
- * Zustand global store — the React equivalent of LangGraph shared state.
- * Lesson: In React, we DON'T use prop-drilling for auth/global state.
- *          Zustand gives us a tiny, simple global store.
- */
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, CandidateScore, InterviewSlot } from '@/types'
@@ -47,7 +42,7 @@ const useStore = create<AppStore>()(
     {
       name: 'hiring-copilot-store',
       // Only persist auth — never persist sensitive workflow data to localStorage
-      partialize: (s) => ({ token: s.token, user: s.user }),
+      partialize: (s) => ({ token: s.token, user: s.user, activeThreadId: s.activeThreadId }),
     }
   )
 )

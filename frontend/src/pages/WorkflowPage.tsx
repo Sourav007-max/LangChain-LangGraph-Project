@@ -1,8 +1,8 @@
-﻿import React, { useState, useCallback } from 'react'
+﻿import React, { useState, useCallback, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Upload, X, CheckCircle2, FileText, ChevronRight,
   Cpu, Brain, Filter, Users, Rocket,
@@ -14,28 +14,37 @@ import { PageHeader, StepIndicator, Spinner, Badge } from '@/components/ui'
 interface UploadedResume { resume_id: number; name: string; email: string; fileName: string }
 
 const AGENTS = [
-  { icon: <Brain size={15} />,  label: 'JD Analyzer',         desc: 'Extracts requirements from job description' },
-  { icon: <FileText size={15} />, label: 'Resume Parser',       desc: 'Parses PDF and extracts candidate data' },
-  { icon: <Cpu size={15} />,    label: 'Candidate Matcher',    desc: 'Scores each candidate against JD' },
-  { icon: <Filter size={15} />, label: 'Shortlisting',         desc: 'Filters candidates above score threshold' },
-  { icon: <Users size={15} />,  label: 'â¸ Human Review',       desc: 'You approve the AI shortlist' },
+  { icon: <Brain size={15} />,  label: 'Understand the role', desc: 'Identify the skills and experience needed' },
+  { icon: <FileText size={15} />, label: 'Read the resumes', desc: 'Extract each candidate\'s background and skills' },
+  { icon: <Cpu size={15} />,    label: 'Rank the candidates', desc: 'Compare each profile with the role' },
+  { icon: <Filter size={15} />, label: 'Build a shortlist', desc: 'Surface the strongest matches' },
+  { icon: <Users size={15} />,  label: 'Your review',       desc: 'You decide who moves to interviews' },
 ]
 
 export default function WorkflowPage() {
   const navigate          = useNavigate()
+  const [searchParams]    = useSearchParams()
   const setWorkflowResult = useStore((s) => s.setWorkflowResult)
 
   const [step, setStep]               = useState(0)   // 0=job, 1=upload, 2=run
-  const [selectedJobId, setSelectedJobId] = useState<number | null>(null)
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(() => {
+    const jobId = Number(searchParams.get('job'))
+    return Number.isInteger(jobId) && jobId > 0 ? jobId : null
+  })
   const [selectedJobTitle, setSelectedJobTitle] = useState('')
   const [candName, setCandName]       = useState('')
   const [candEmail, setCandEmail]     = useState('')
   const [uploaded, setUploaded]       = useState<UploadedResume[]>([])
 
-  const { data: jobsData } = useQuery({
+  const { data: jobsData, isError: jobsError } = useQuery({
     queryKey: ['jobs', 'active'],
     queryFn: () => jobService.list('active').then((r) => r.data),
   })
+
+  useEffect(() => {
+    const selectedJob = jobsData?.jobs.find((job) => job.id === selectedJobId)
+    if (selectedJob) setSelectedJobTitle(selectedJob.title)
+  }, [jobsData, selectedJobId])
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => resumeService.upload(file, candEmail, candName),
@@ -100,6 +109,12 @@ export default function WorkflowPage() {
             <h2 className="font-semibold text-gray-900">Choose a Job Opening</h2>
           </div>
           <p className="text-sm text-gray-500">Select the role you are screening candidates for.</p>
+
+          {jobsError && (
+            <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+              Active jobs could not be loaded. Refresh the page and try again.
+            </div>
+          )}
 
           {jobsData?.jobs.length === 0 && (
             <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">

@@ -31,8 +31,9 @@ def get_db():
 
 
 # ── SQLAlchemy models (ORM) ───────────────────────────────────────────────────
-from sqlalchemy import Column, Integer, BigInteger, String, Text, Boolean, DateTime, Float, Enum, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, Float, ForeignKey, JSON
 from datetime import datetime, timezone
+from utils.crypto import hash_password
 
 
 def _now():
@@ -118,37 +119,6 @@ class Application(Base):
     updated_at       = Column(DateTime, default=_now, onupdate=_now)
 
 
-class Interview(Base):
-    __tablename__ = "interviews"
-    id              = Column(Integer, primary_key=True, autoincrement=True)
-    application_id  = Column(Integer, ForeignKey("applications.id"), nullable=False)
-    interviewer_id  = Column(Integer, ForeignKey("users.id"), nullable=False)
-    round_number    = Column(Integer, default=1)
-    interview_type  = Column(String(50), default="technical")
-    scheduled_at    = Column(DateTime, nullable=False)
-    duration_mins   = Column(Integer, default=60)
-    meeting_link    = Column(String(500), nullable=True)
-    status          = Column(String(30), default="scheduled")
-    ai_questions    = Column(JSON, nullable=True)
-    email_sent_at   = Column(DateTime, nullable=True)
-    created_at      = Column(DateTime, default=_now)
-
-
-class Evaluation(Base):
-    __tablename__ = "evaluations"
-    id                   = Column(Integer, primary_key=True, autoincrement=True)
-    interview_id         = Column(Integer, ForeignKey("interviews.id"), nullable=False)
-    evaluator_id         = Column(Integer, ForeignKey("users.id"), nullable=False)
-    technical_score      = Column(Integer, nullable=True)
-    communication_score  = Column(Integer, nullable=True)
-    overall_score        = Column(Integer, nullable=True)
-    strengths            = Column(Text, nullable=True)
-    weaknesses           = Column(Text, nullable=True)
-    recommendation       = Column(String(30), nullable=False)
-    ai_summary           = Column(Text, nullable=True)
-    created_at           = Column(DateTime, default=_now)
-
-
 class AgentLog(Base):
     __tablename__ = "agent_logs"
     id               = Column(Integer, primary_key=True, autoincrement=True)
@@ -167,11 +137,6 @@ class AgentLog(Base):
     created_at       = Column(DateTime, default=_now)
 
 
-def _hash_pw(password: str) -> str:
-    import bcrypt
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-
 def init_db():
     """Create all tables and seed a demo admin user."""
     Base.metadata.create_all(bind=engine)
@@ -185,9 +150,9 @@ def init_db():
             return
 
         users = [
-            User(email="admin@hiringapp.com",     password_hash=_hash_pw("Admin@123"),     full_name="Admin User",     role="admin"),
-            User(email="recruiter@hiringapp.com",  password_hash=_hash_pw("Admin@123"),     full_name="Sarah Recruiter", role="recruiter"),
-            User(email="manager@hiringapp.com",    password_hash=_hash_pw("Admin@123"),     full_name="Mike Manager",   role="hiring_manager"),
+            User(email="admin@hiringapp.com",     password_hash=hash_password("Admin@123"),     full_name="Admin User",     role="admin"),
+            User(email="recruiter@hiringapp.com",  password_hash=hash_password("Admin@123"),     full_name="Sarah Recruiter", role="recruiter"),
+            User(email="manager@hiringapp.com",    password_hash=hash_password("Admin@123"),     full_name="Mike Manager",   role="hiring_manager"),
         ]
         db.add_all(users)
         db.flush()

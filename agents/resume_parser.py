@@ -7,36 +7,13 @@ Output : state["parsed_resumes"]  — list of structured candidate dicts
 """
 
 import time
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from config.settings import get_llm
+from config.settings import get_llm, RESUME_MAX_CHARS
 from config.monitoring import log_agent
 from agents.state import HiringState
+from agents.prompts import RESUME_PARSING_PROMPT
 
-_PROMPT = ChatPromptTemplate.from_template("""
-You are an expert resume parser. Extract structured data from this resume.
-Return ONLY valid JSON — no markdown, no extra text.
-
-Resume Text:
-{resume_text}
-
-JSON schema to return:
-{{
-  "full_name":               "<name or null>",
-  "email":                   "<email or null>",
-  "phone":                   "<phone or null>",
-  "current_title":           "<current job title or null>",
-  "total_experience_years":  <number or 0>,
-  "skills":                  ["skill1", "skill2"],
-  "education": [
-    {{"degree": "...", "field": "...", "institution": "...", "year": <int or null>}}
-  ],
-  "work_experience": [
-    {{"title": "...", "company": "...", "years": <float>, "description": "..."}}
-  ],
-  "certifications": ["cert1"]
-}}
-""")
+_PROMPT = RESUME_PARSING_PROMPT
 
 
 @log_agent("resume_parser", "parse_resumes")
@@ -52,8 +29,7 @@ def resume_parser_node(state: HiringState) -> dict:
         meta = metadata[i] if i < len(metadata) else {}
         t0 = time.time()
         try:
-            # Truncate to ~3 000 chars to stay within token limits for free models
-            result = chain.invoke({"resume_text": text[:3000]})
+            result = chain.invoke({"resume_text": text[:RESUME_MAX_CHARS]})
             # Merge file metadata in case LLM missed the email
             result.setdefault("email", meta.get("candidate_email", ""))
             result.setdefault("full_name", meta.get("candidate_name", "Unknown"))

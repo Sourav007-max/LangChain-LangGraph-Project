@@ -6,29 +6,13 @@ Output : state["job_requirements"]  — structured JSON of what the job needs
 """
 
 import time
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from config.settings import get_llm
 from config.monitoring import log_agent
 from agents.state import HiringState
+from agents.prompts import JD_ANALYSIS_PROMPT
 
-_PROMPT = ChatPromptTemplate.from_template("""
-You are an expert technical recruiter. Analyse this job description and extract
-the requirements. Return ONLY valid JSON — no markdown, no extra text.
-
-Job Description:
-{jd_text}
-
-JSON schema to return:
-{{
-  "required_skills":       ["skill1", "skill2"],
-  "nice_to_have_skills":   ["skill1"],
-  "min_experience_years":  <integer or 0>,
-  "education_requirement": "any|bachelors|masters|phd",
-  "job_summary":           "<two sentence summary>",
-  "key_responsibilities":  ["resp1", "resp2", "resp3"]
-}}
-""")
+_PROMPT = JD_ANALYSIS_PROMPT
 
 
 @log_agent("jd_analyzer", "analyze_jd")

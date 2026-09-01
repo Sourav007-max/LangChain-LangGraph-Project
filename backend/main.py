@@ -17,8 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
-import jwt
-import bcrypt as _bcrypt
+from jose import ExpiredSignatureError, JWTError, jwt
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,6 +25,8 @@ load_dotenv()
 from database.init_db import init_db, get_db, User, Job, Candidate, Resume, Application, AgentLog
 from agents.graph import run_workflow, resume_workflow, get_workflow_state
 from config.settings import SECRET_KEY, CORS_ORIGINS, UPLOAD_DIR, MAX_FILE_SIZE_MB
+from utils.crypto import hash_password, verify_password
+from utils.pdf_utils import extract_resume_text
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,14 +35,6 @@ logger = logging.getLogger(__name__)
 _bearer = HTTPBearer()
 _JWT_ALG = "HS256"
 _JWT_EXP = 60  # minutes
-
-
-def _hash_pw(password: str) -> str:
-    return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt()).decode()
-
-
-def _verify_pw(plain: str, hashed: str) -> bool:
-    return _bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 def _make_token(user_id: int, email: str, role: str) -> str:
@@ -53,9 +46,9 @@ def _make_token(user_id: int, email: str, role: str) -> str:
 def _decode_token(token: str) -> dict:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[_JWT_ALG])
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         raise HTTPException(401, "Token expired")
-    except jwt.InvalidTokenError:
+    except JWTError:
         raise HTTPException(401, "Invalid token")
 
 
@@ -149,7 +142,7 @@ def register(body: RegisterIn, db: Session = Depends(get_db)):
     allowed = {"recruiter", "hiring_manager", "interviewer"}
     if body.role not in allowed:
         raise HTTPException(400, f"Role must be one of {allowed}")
-    user = User(email=body.email, password_hash=_hash_pw(body.password),
+    user = User(email=body.email, password_hash=hash_password(body.password),
                 full_name=body.full_name, role=body.role)
     db.add(user); db.commit(); db.refresh(user)
     return {"access_token": _make_token(user.id, user.email, user.role),
@@ -159,7 +152,7 @@ def register(body: RegisterIn, db: Session = Depends(get_db)):
 @app.post("/api/v1/auth/login", tags=["Auth"])
 def login(body: LoginIn, db: Session = Depends(get_db)):
     user = db.query(User).filter_by(email=body.email).first()
-    if not user or not _verify_pw(body.password, user.password_hash):
+    if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(401, "Invalid email or password")
     if not user.is_active:
         raise HTTPException(403, "Account deactivated")
@@ -252,9 +245,7 @@ def start_workflow(
         if not r or not os.path.exists(r.file_path):
             continue
         try:
-            import pypdf
-            reader = pypdf.PdfReader(r.file_path)
-            text = " ".join(p.extract_text() or "" for p in reader.pages)
+            text = extract_resume_text(r.file_path)
         except Exception:
             text = ""
         cand = db.query(Candidate).filter_by(id=r.candidate_id).first()
