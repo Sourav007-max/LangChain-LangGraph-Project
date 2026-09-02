@@ -40,6 +40,10 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# ── GitHub repo polish: keep README, hide training/docs markdown locally ───
+*.md
+!README.md
+
 # ── Uploads & Data ───────────────────────────────────────────────────────────
 uploads/
 *.pdf
