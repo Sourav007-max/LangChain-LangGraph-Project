@@ -35,10 +35,10 @@ def resume_parser_node(state: HiringState) -> dict:
             result.setdefault("full_name", meta.get("candidate_name", "Unknown"))
             result["file_name"] = meta.get("file_name", f"resume_{i+1}.pdf")
             elapsed = int((time.time() - t0) * 1000)
-            print(f"  [Resume Parser] ✅ {result.get('full_name')} ({elapsed}ms)")
+            print(f"  [Resume Parser] {result.get('full_name')} ({elapsed}ms)")
             parsed.append(result)
         except Exception as exc:
-            print(f"  [Resume Parser] ❌ resume {i+1}: {exc}")
+            print(f"  [Resume Parser] resume {i+1}: {exc}")
             parsed.append({
                 "full_name":  meta.get("candidate_name", f"Candidate {i+1}"),
                 "email":      meta.get("candidate_email", ""),

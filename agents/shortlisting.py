@@ -21,7 +21,7 @@ def shortlisting_node(state: HiringState) -> dict:
     shortlisted = [c for c in scores if c.get("score", 0) >= MIN_SCORE][:MAX_SHORTLIST]
 
     print(
-        f"  [Shortlisting] ✅ {len(shortlisted)} / {len(scores)} candidates "
+        f"  [Shortlisting] {len(shortlisted)} / {len(scores)} candidates "
         f"meet threshold (score ≥ {MIN_SCORE})"
     )
 

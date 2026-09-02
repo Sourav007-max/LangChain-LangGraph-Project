@@ -72,6 +72,6 @@ def interview_scheduler_node(state: HiringState) -> dict:
             entry["email_sent"] = True
 
         schedule.append(entry)
-        print(f"  [Scheduler] ✅ {entry['candidate_name']} → {interview_date}")
+        print(f"  [Scheduler]  {entry['candidate_name']} → {interview_date}")
 
     return {"interview_schedule": schedule, "current_agent": "interview_scheduler"}

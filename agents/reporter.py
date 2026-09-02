@@ -42,10 +42,10 @@ def report_generator_node(state: HiringState) -> dict:
             "skill_gaps":       json.dumps(skill_gaps),
         })
         report = response.content
-        print("  [Reporter] ✅ Final report generated")
+        print("  [Reporter] Final report generated")
         return {"final_report": report, "current_agent": "report_generator"}
     except Exception as exc:
-        print(f"  [Reporter] ❌ {exc}")
+        print(f"  [Reporter] {exc}")
         return {
             "final_report": f"# Report Generation Failed\n\n{exc}",
             "current_agent": "report_generator",

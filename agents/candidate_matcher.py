@@ -44,10 +44,10 @@ def candidate_matcher_node(state: HiringState) -> dict:
             result["candidate_email"] = candidate.get("email", "")
             result["file_name"]       = candidate.get("file_name", "")
             elapsed = int((time.time() - t0) * 1000)
-            print(f"  [Matcher] ✅ {result['candidate_name']} → {result.get('score')}/100 ({elapsed}ms)")
+            print(f"  [Matcher] {result['candidate_name']} → {result.get('score')}/100 ({elapsed}ms)")
             scores.append(result)
         except Exception as exc:
-            print(f"  [Matcher] ❌ {candidate.get('full_name')}: {exc}")
+            print(f"  [Matcher] {candidate.get('full_name')}: {exc}")
 
     scores.sort(key=lambda x: x.get("score", 0), reverse=True)
     return {"candidate_scores": scores, "current_agent": "candidate_matcher"}

@@ -139,14 +139,15 @@ class AgentLog(Base):
 
 def init_db():
     """Create all tables and seed a demo admin user."""
+    db_type = "MySQL" if "mysql" in DATABASE_URL else "SQLite"
     Base.metadata.create_all(bind=engine)
-    print("✅ All tables created in SQLite")
+    print(f"All tables created in {db_type}")
 
     db = SessionLocal()
     try:
         # Skip seed if users already exist
         if db.query(User).count() > 0:
-            print("ℹ️  Seed data already present, skipping.")
+            print(" Seed data already present, skipping.")
             return
 
         users = [

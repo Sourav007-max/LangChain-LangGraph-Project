@@ -34,7 +34,7 @@ def human_review_node(state: HiringState) -> dict:
     has already been injected via graph.update_state().
     """
     approved = state.get("human_approved_candidates", state.get("shortlisted_candidates", []))
-    print(f"  [Human Review] ✅ Recruiter approved {len(approved)} candidate(s)")
+    print(f"  [Human Review] Recruiter approved {len(approved)} candidate(s)")
     return {
         "human_approved_candidates": approved,
         "human_decision":            state.get("human_decision", "approve"),
